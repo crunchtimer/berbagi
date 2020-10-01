@@ -15,25 +15,19 @@ import (
 const AccessTokenTTL = time.Hour
 
 type TallyCountInteractor struct {
-	twitterRepo     repository.TwitterAccessTokenRepository
-	getTwitterToken query_service.GetTwitterAccessTokenQueryService
-	twitterAuth     query_service.AuthorizeTwitterQueryService
-	fetchTweets     query_service.FetchTweetsQueryService
-	fetchUser       query_service.FetchUserQueryService
-	slackRepo       repository.SlackRepository
+	twitterAuth query_service.AuthorizeTwitterQueryService
+	fetchTweets query_service.FetchTweetsQueryService
+	fetchUser   query_service.FetchUserQueryService
+	slackRepo   repository.SlackRepository
 }
 
 func NewTallyCountInteractor(
-	twitterRepo repository.TwitterAccessTokenRepository,
-	getTwitterToken query_service.GetTwitterAccessTokenQueryService,
 	twitterAuth query_service.AuthorizeTwitterQueryService,
 	fetchTweets query_service.FetchTweetsQueryService,
 	fetchUser query_service.FetchUserQueryService,
 	slackRepo repository.SlackRepository,
 ) *TallyCountInteractor {
 	intr := new(TallyCountInteractor)
-	intr.twitterRepo = twitterRepo
-	intr.getTwitterToken = getTwitterToken
 	intr.twitterAuth = twitterAuth
 	intr.fetchTweets = fetchTweets
 	intr.fetchUser = fetchUser
@@ -44,23 +38,8 @@ func NewTallyCountInteractor(
 func (intr *TallyCountInteractor) Invoke() (err error) {
 
 	// Get access token for Twitter
-	twitterToken, err := intr.getTwitterToken.GetTwitterToken()
-	log.Print("Get access token for Twitter")
-
-	if err == query_service.NoTwitterAccessTokenExistException {
-		newToken, e := intr.twitterAuth.AuthTwitter()
-		log.Print("Authorize Twitter")
-
-		if e != nil {
-			err = e
-			return
-		}
-		err = intr.twitterRepo.SetTwitterToken(newToken, AccessTokenTTL)
-		log.Print("Set Twitter access token")
-
-		twitterToken, err = intr.getTwitterToken.GetTwitterToken()
-		log.Print("Get access token for Twitter")
-	}
+	twitterToken, err := intr.twitterAuth.AuthTwitter()
+	log.Print("Authorize Twitter")
 	if err != nil {
 		return
 	}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/hourglasshoro/berbagi/src/app/infrastructure/redis"
 	slack_webhook "github.com/hourglasshoro/berbagi/src/app/infrastructure/web/slack"
 	"github.com/hourglasshoro/berbagi/src/app/infrastructure/web/twitter"
 	"github.com/hourglasshoro/berbagi/src/app/presentation/controller"
@@ -14,21 +13,13 @@ type Controllers struct {
 
 func NewControllers() (ctrls *Controllers, err error) {
 	ctrls = new(Controllers)
-	redisInst, err := redis.NewRedis()
-	if err != nil {
-		return
-	}
 
-	twitterRepo := redis.NewTwitterAccessTokenRepository(redisInst)
-	getTwitterToken := redis.NewGetTwitterAccessTokenQueryService(redisInst)
 	twitterAuth := twitter.NewAuthorizeTwitterQueryService()
 	fetchTweets := twitter.NewFetchTweetsQueryService()
 	fetchUser := twitter.NewFetchUserQueryService()
 	slackRepo := slack_webhook.NewSlackRepository()
 
 	searchIntr := *interactor.NewTallyCountInteractor(
-		twitterRepo,
-		getTwitterToken,
 		twitterAuth,
 		fetchTweets,
 		fetchUser,
